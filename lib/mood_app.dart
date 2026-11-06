@@ -745,7 +745,9 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> {
   }
 
   Future<void> _refreshActivities() async {
-    setState(() => _activitiesFuture = widget.repository.loadActivities());
+    setState(() {
+      _activitiesFuture = widget.repository.loadActivities();
+    });
     await _activitiesFuture;
   }
 
@@ -776,35 +778,10 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> {
   }
 
   Future<void> _writeGratitude() async {
-    final controller = TextEditingController();
     final note = await showDialog<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Tres cosas buenas'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          minLines: 3,
-          maxLines: 5,
-          maxLength: 240,
-          decoration: const InputDecoration(
-            hintText: 'Escribe algo que agradezcas hoy...',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () =>
-                Navigator.pop(dialogContext, controller.text.trim()),
-            child: const Text('Guardar'),
-          ),
-        ],
-      ),
+      builder: (_) => const _GratitudeDialog(),
     );
-    controller.dispose();
     if (note == null || note.isEmpty) return;
     await _complete('Diario de gratitud', note: note);
   }
@@ -904,6 +881,48 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> {
         ],
       );
     },
+  );
+}
+
+class _GratitudeDialog extends StatefulWidget {
+  const _GratitudeDialog();
+
+  @override
+  State<_GratitudeDialog> createState() => _GratitudeDialogState();
+}
+
+class _GratitudeDialogState extends State<_GratitudeDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Tres cosas buenas'),
+    content: TextField(
+      controller: _controller,
+      autofocus: true,
+      minLines: 3,
+      maxLines: 5,
+      maxLength: 240,
+      decoration: const InputDecoration(
+        hintText: 'Escribe algo que agradezcas hoy...',
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancelar'),
+      ),
+      FilledButton(
+        onPressed: () => Navigator.pop(context, _controller.text.trim()),
+        child: const Text('Guardar'),
+      ),
+    ],
   );
 }
 
